@@ -330,14 +330,14 @@
         </table>
     </div>
 
-    <p class="note">Italic/faded = e-learning. Game &amp; Waffles schedules to be added.</p>
+    <p class="note">Italic/faded = e-learning.</p>
 
     </div>
     
 
 </body>
 
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
 // set visibility
 for (let username in data.users) {
@@ -386,24 +386,55 @@ function updateTimetable() {
         }
     }
 
+    // for loop for hours
     for (let i = start; i < end; i++) {
         timetable_html += `<tr> <td class="tc">${i}:00</td> `
+
+        // for loop for days
         for (let j = 1; j <= 5; j++) {
+
+
             timetable_html += `<td>`
+            lunch_html = ``
+
+            // for loop for users
             for (let username in data.users) {
                 const user = data.users[username] 
+
+                // check each lesson a user has
                 for (let day_index in data.users[username]["timetable"]) {
                     const day = data.users[username]["timetable"][day_index]
+
+                    // check if lesson merges with hour and day
                     if (parseInt(day.start, 10) <= i && parseInt(day.end, 10) > i && day.day == j && data.users[username].visibility == true) {
+                        
+                        // lunch
                         if (day.break == true) {
-                            timetable_html += `<span class="bl" style = "background: #F0F0F0; color: #999"><span class="nm">${username}</span>${day.name}</span>`
+
+                            // add commas between names
+                            if (lunch_html != ``) {
+                                lunch_html += `, `
+                            }
+
+                            lunch_html += ` ${username}`
+                        
+                        // e learning
                         } else if (day.online == true) {
                             timetable_html += `<span class="bl el" style = "background: ${user.background_colour}; color: ${user.colour}"><span class="nm">${username} · ${day.code_name}</span>${day.name} (${day.classroom})</span>`
+                        
+                        // regular
                         } else {
                             timetable_html += `<span class="bl" style = "background: ${user.background_colour}; color: ${user.colour}"><span class="nm">${username} · ${day.code_name}</span>${day.name} · ${day.classroom}</span>`
                         }
                     }
                 }
+            }
+
+            // check if lunch is there
+            if (lunch_html != ``) {
+                timetable_html += `<span class="bl" style = "background: #F0F0F0; color: #999"><span class="nm">`
+                lunch_html += `</span>🍽 Lunch</span>`
+                timetable_html += lunch_html
             }
             timetable_html += `</td>`
         }
@@ -468,6 +499,16 @@ function updateButton(button) {
     updateColour()
     updateTimetable()
 
+}
+
+// export png
+function setStatus(msg,t){const s=document.getElementById('status');s.textContent=msg;if(t)setTimeout(()=>s.textContent='',t);}
+function exportPNG(){
+  setStatus('Generating...');
+  html2canvas(document.getElementById('capture-area'),{scale:2,backgroundColor:'#ffffff'}).then(c=>{
+    const a=document.createElement('a');a.download='group_schedule.png';a.href=c.toDataURL('image/png');a.click();
+    setStatus('Downloaded!',2500);
+  }).catch(()=>setStatus('Error, try again',2500));
 }
 
 
